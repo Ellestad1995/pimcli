@@ -1,6 +1,3 @@
-$oldverbose = $VerbosePreference
-$VerbosePreference = "continue"
-
 Import-Module "$($PSScriptRoot)\ps-menu\ps-menu.psm1"
 
 if($IsLiniux -or $IsMacOS){
@@ -8,39 +5,39 @@ if($IsLiniux -or $IsMacOS){
 }
 
 Write-Verbose "Checking powershell version"
-$VerbosePreference = $oldverbose
 if($PSVersionTable.PSVersion.Major -lt 7) {
-    Write-Warning "You need to use Powershell 7. Not really, but you should! :)"
+    Write-Warning "Will you consider using Powershell 7. Come on"
     try{
         Import-Module AzureAdPreview -Function Connect-AzureAD, Get-AzureAdUser, Get-AzureADMSPrivilegedRoleDefinition, Get-AzureADMSPrivilegedRoleAssignment 
     } catch {
-        Write-Host "Missing module AzureAdPreview. Run Install-Module AzureAdPreview in a Poweshell 5.1 Administrator terminal"
+        throw "Missing module AzureAdPreview. Run Install-Module AzureAdPreview in a Poweshell 5.1 Administrator terminal"
     }
 }else{
     try{
         Import-Module AzureAdPreview -UseWindowsPowershell -Function Connect-AzureAD, Get-AzureAdUser, Get-AzureADMSPrivilegedRoleDefinition, Get-AzureADMSPrivilegedRoleAssignment 
     } catch {
-        Write-Host "Missing module AzureAdPreview. Run Install-Module AzureAdPreview in a Poweshell 5.1 Administrator terminal"
+        throw "Missing module AzureAdPreview. Run Install-Module AzureAdPreview in a Poweshell 5.1 Administrator terminal"
     }
 }
-$VerbosePreference = "continue"
-###################################
-# Global variables
-#
+
+
+<#
+# Privileged Identity Management
+# Connect to service 
+# Save Connection details
+# Save Account details for authenticated user
+#>
 $AzureAdConnection = $null
 $global:DirectoryId = $null # Directory id / Tenant id
 
 function Connect-PIM{
     Write-Verbose "Connect-PIM"
     if($null -eq $AzureAdConnection){
-        # Connect using cached credentials
-
-    }else{
         # Connect prompting for credentials
         Write-Verbose "Connecting to Azure Ad"
         $AzureAdConnection = Connect-AzureAD #Az Account, Environment, TenantId, TenantDomain, AccountType
         if ($null -eq $AzureAdConnection){
-            Write-Output "Could not connect to Azure. Exit"
+            throw "Could not connect to Azure. Exit"
             return
         }
     }
@@ -49,13 +46,10 @@ function Connect-PIM{
     Write-Verbose "Getting Azure Ad user for the logged in user"
     $CurrentLoggedInUser = Get-AzureAdUser -ObjectId "$($AzureAdConnection.Account)" # ObjectId, DisplayName, userPrincipalName, UserType
     if($null -eq $CurrentLoggedInUser){
-        Write-Error "Could not get user data from Azure."
+        throw "Could not get Azure Ad User"
         return
     }
 }
-
-
-
 
 
 
