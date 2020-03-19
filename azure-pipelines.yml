@@ -26,13 +26,13 @@ stages:
   - job: Publish
     continueOnError: false 
     steps:
-    - Powershell: '.\CI\Pre-CheckCI.ps1'
+    - powershell: '.\CI\Pre-CheckCI.ps1'
       displayName: 'Pre check before publish'  
 
-    - Powershell: 'Install-PackageProvider -Name NuGet -Force ; & .\CI\Build.ps1'
+    - powershell: 'Install-PackageProvider -Name NuGet -Force ; & .\CI\Build.ps1'
       displayName: 'Build module'
 
-    - Powershell: '.\CI\Publish.ps1'
+    - powershell: '.\CI\Publish.ps1'
       displayName: "Publish to Powershell Gallery"
       env: 
         NUGETAPIKEY: $(NuGetApiKey)
