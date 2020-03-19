@@ -4,9 +4,16 @@
 # https://aka.ms/yaml
 # YAML: $(NuGetApiKey)
 # Powershell: $env:NUGETAPIKEY
-
+#
+# Runs one job with several steps
 trigger:
-- master
+  branches:
+  - master
+  paths:
+    exclude:
+    - README.md
+    - LICENSE
+    - .vscode
 
 pool:
   vmImage: 'windows-2019'
@@ -18,11 +25,14 @@ stages:
   - job: Publish
     continueOnError: false 
     steps:
-      - Powershell: 'Install-PackageProvider -Name NuGet -Force ; & .\CI\Build.ps1'
-        displayName: 'Installing pimcli on target'
+    - Powershell: '.\CI\Pre-CheckCI.ps1'
+      displayName: 'Pre check before publish'  
 
-      - Powershell: '.\CI\Publish.ps1'
-        displayName: "Publish to Powershell Gallery"
-        env: 
-          NUGETAPIKEY: $(NuGetApiKey)
+    - Powershell: 'Install-PackageProvider -Name NuGet -Force ; & .\CI\Build.ps1'
+      displayName: 'Build module'
+
+    - Powershell: '.\CI\Publish.ps1'
+      displayName: "Publish to Powershell Gallery"
+      env: 
+        NUGETAPIKEY: $(NuGetApiKey)
 

@@ -1,8 +1,8 @@
-[CmdletBinding(DefaultParameterSetName = 'Default')]
+#[CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
     # Path to install the module to, if not provided -Scope used.
     [Parameter(Mandatory, ParameterSetName = 'ModulePath')]
-    #[ValidateNotNullOrEmpty()]
+    [ValidateNotNullOrEmpty()]
     [String]
     $ModulePath,
 
