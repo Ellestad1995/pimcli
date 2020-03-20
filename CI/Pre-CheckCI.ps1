@@ -29,15 +29,22 @@ if ($PSScriptRoot) {
 }
 
 $psdPath = Get-Item "*.psd1"
+
+
 if (-not $psdPath -or $psdPath.count -gt 1) {
     if ($PSScriptRoot) { Pop-Location }
     throw "Did not find a unique PSD file "
 }
 else {
+
+    <#
+        Throw the real error when the Powershell guys fixes this
+       https://github.com/PowerShell/PowerShell/issues/7495
+    #>
     try{
-        Test-ModuleManifest -Path $psdpath -ErrorAction stop | Out-Null
+        Test-ModuleManifest -Path $psdPath -ErrorAction stop | Out-Null
     }catch{
-        throw; return
+        "[WARNING] $(Out-String -InputObject $_)"
     }
     $ModuleName         = $psdPath.Name -replace '\.psd1$' , ''
     $Settings           = $(& ([scriptblock]::Create(($psdPath | Get-Content -Raw))))
@@ -133,17 +140,22 @@ try{
 # Install required Modules
 
 foreach($RequiredModule in $Settings.RequiredModules){
-    "[INFO] Installing required module $RequiredModule"
-    $Module = Find-Module $RequiredModule
-    if($Module -or $Module.count -gt 1){
+    "[INFO] Installing required module $($RequiredModule.'ModuleName')"
+    $Module = Find-Module $($RequiredModule.'ModuleName')
+    if((-not $Module) -or $Module.count -gt 1){
         # Can't determine which module to install
-        "[WARNING] Can't determine which module to install for $RequiredModule"
-
+        "[WARNING] Can't determine which module to install for $(Out-String -InputObject $RequiredModule)"
     }else{
-        try{
-
-        }catch{
-            Install-Module $Module.Name -Scope CurrentUser -Repository PSGallery -Force -SkipPublisherCheck
+        # First check if it already is installed
+        $isModuleInstalled = Get-Module -Name $Module.Name
+        if(-not $isModuleInstalled){
+            try{
+                Install-Module $Module.Name -Scope CurrentUser -Repository $Module.Repository -Force -SkipPublisherCheck
+            }catch{
+                throw
+            }
+        }else{
+            "[INFO] Module $($Module.Name) is alrady installed"
         }
         
     }
