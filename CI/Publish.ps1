@@ -25,7 +25,12 @@ Param
     [Switch]$Force
 )
 $ErrorActionPreference = 'Stop'
-
+try{
+    Import-Module PowerShellGet -MinimumVersion '2.2.3' 
+}catch{
+    throw
+    return
+}
 <#
 # if path is provided we can get the Module manifest easily
 #>
@@ -92,7 +97,7 @@ if ($VersionGallery -lt $VersionLocal -or $Force) {
         Publish-Module -NuGetApiKey $NugetApiKey -Path $Path
     }
     else {
-        Publish-Module -NuGetApiKey $NugetApiKey -Name $ModuleName  -RequiredVersion $VersionLocal
+        Publish-Module -NuGetApiKey $NugetApiKey -Name $ModuleName -RequiredVersion $VersionLocal
     }
 }
 else {
