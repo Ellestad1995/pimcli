@@ -29,11 +29,8 @@ stages:
     - powershell: '.\CI\Pre-CheckCI.ps1'
       displayName: 'Pre check before publish'  
 
-    - powershell: '.\CI\Build.ps1'
-      displayName: 'Build module'
-
-    - powershell: 'Install-PackageProvider -Name NuGet -Force; & .\CI\Publish.ps1'
-      displayName: "Publish to Powershell Gallery"
+    - powershell: '.\CI\Build.ps1; Install-PackageProvider -Name NuGet -Force; & .\CI\Publish.ps1'
+      displayName: 'Build module and publish to PSGallery'
       env: 
         NUGETAPIKEY: $(NuGetApiKey)
 
