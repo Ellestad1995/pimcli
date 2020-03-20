@@ -199,7 +199,7 @@ $AnalyzerResults = Invoke-ScriptAnalyzer -Path $ModulePath -Recurse -ErrorAction
 
 if($AnalyzerResults){
     # Write the result to file and upload
-    $PSScriptAnalyzerResultFile = Join-path $pwd 'PSScriptAnalyzerResult.txt'
+    $PSScriptAnalyzerResultFile = Join-path $pwd -ChildPath 'PSScriptAnalyzerResult.txt'
     Out-File -InputObject $AnalyzerResults -FilePath $PSScriptAnalyzerResultFile
     if(Test-Path -Path $PSScriptAnalyzerResultFile){
         "Uploading PSScriptAnalyzer results $($PSScriptAnalyzerResultFile)"
