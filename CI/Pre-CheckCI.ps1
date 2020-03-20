@@ -129,6 +129,27 @@ try{
     if ($PSScriptRoot) { Pop-Location }
     Write-Verbose 'Module is installed'
 }
+
+# Install required Modules
+
+foreach($RequiredModule in $Settings.RequiredModules){
+    "[INFO] Installing required module $RequiredModule"
+    $Module = Find-Module $RequiredModule
+    if($Module -or $Module.count -gt 1){
+        # Can't determine which module to install
+        "[WARNING] Can't determine which module to install for $RequiredModule"
+
+    }else{
+        try{
+
+        }catch{
+            Install-Module $Module.Name -Scope CurrentUser -Repository PSGallery -Force -SkipPublisherCheck
+        }
+        
+    }
+}
+
+
 ######## End install module ##############
 
 <########################
