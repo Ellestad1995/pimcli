@@ -19,6 +19,12 @@
             "script": "${file}",
             "cwd": "${file}",
             "args": ["{command:SpecifyScriptArgs}"]
+        },
+        {
+            "name": "Powershell Interactive Session",
+            "type": "PowerShell",
+            "request": "launch",
+            "cwd": "${workspaceRoot}"
         }
     ]
 }
