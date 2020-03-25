@@ -9,6 +9,11 @@
 #$DebugPreference = "continue"
 #$VerbosePreference = "Continue"
 
+if($PSScriptRoot){
+    Write-Debug $PSScriptRoot
+}
+
+
 Import-Module "$($PSScriptRoot)\Private\ps-menu\ps-menu.psm1"
 if($IsLiniux -or $IsMacOS){
     Write-Warning "Module is not tested on your platform. Please report any issues."
@@ -33,9 +38,9 @@ if($PSVersionTable.PSVersion.Major -lt 7) {
 
 # Import functions
 try{
-    . '.\Public\Connect-pim.ps1'
-    . '.\Public\Get-PrivilegedRoleAssignments.ps1'
-    . '.\Public\Enable-PrivilegedRoleAssignment.ps1'
+    . "$PSScriptRoot\Public\Connect-pim.ps1"
+    . "$PSScriptRoot\Public\Get-PrivilegedRoleAssignments.ps1"
+    . "$PSScriptRoot\Public\Enable-PrivilegedRoleAssignment.ps1"
 
 }catch{
     throw "Could not import one or more functions. $_"
