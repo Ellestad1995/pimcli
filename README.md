@@ -1,8 +1,9 @@
 # pimcli
 
 ## TODO
-[] Use Replace all fuctions to use Graph API
-[] Add Toast notification for expiring role assignment.
+
+- [ ] Use Replace all fuctions to use Graph API
+- [ ] Add Toast notification for expiring role assignment.
 
 ## Description
 
