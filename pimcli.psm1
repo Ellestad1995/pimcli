@@ -23,13 +23,13 @@ Write-Verbose "Checking powershell version"
 if($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Verbose "Will you consider using Powershell 7? Come on"
     try{
-        Import-Module AzureAdPreview -Function Connect-AzureAD, Get-AzureAdUser, Get-AzureADMSPrivilegedRoleDefinition, Get-AzureADMSPrivilegedRoleAssignment 
+        Import-Module AzureAdPreview -Function Connect-AzureAD, Get-AzureAdUser, Get-AzureADMSPrivilegedRoleDefinition, Get-AzureADMSPrivilegedRoleAssignment, Open-AzureADMSPrivilegedRoleAssignmentRequest
     } catch {
         throw "Missing module AzureAdPreview. Run Install-Module AzureAdPreview in a Poweshell 5.1 Administrator terminal"
     }
 }else{
     try{
-        Import-Module AzureAdPreview -UseWindowsPowershell -Function Connect-AzureAD, Get-AzureAdUser, Get-AzureADMSPrivilegedRoleDefinition, Get-AzureADMSPrivilegedRoleAssignment 
+        Import-Module AzureAdPreview -UseWindowsPowershell -Function Connect-AzureAD, Get-AzureAdUser, Get-AzureADMSPrivilegedRoleDefinition, Get-AzureADMSPrivilegedRoleAssignment, Open-AzureADMSPrivilegedRoleAssignmentRequest 
     } catch {
         throw "Missing module AzureAdPreview. Run Install-Module AzureAdPreview in a Poweshell 5.1 Administrator terminal"
     }
