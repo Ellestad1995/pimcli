@@ -26,14 +26,17 @@ function Enable-PrivilegedRoleAssignment{
         $SelectedRoleAssignments
     )
     Write-Verbose "Enable-PrivilegedRoleAssignment"
-   
+
+    <#
+    # Get eligible role assignments
+    #>
+    $EligibleRoles = Get-PrivilegedRoleAssignments -Eligible -Detailed
 
 
     <#
-        Get the available role assignments
+        Create the menu items with eligbile roles if the SelectedRoleAssignments is empty.
     #>
     if($null -eq $SelectedRoleAssignments){
-        $EligibleRoles = Get-PrivilegedRoleAssignments -Eligible -Detailed
         $RoleAssignmentMenuItems = $null
         $RoleAssignmentMenuItems = @()
         $RoleAssignmentMenuItems += $EligibleRoles | Select-Object 'DisplayName' | %{$_.'DisplayName'}
@@ -89,9 +92,21 @@ function Enable-PrivilegedRoleAssignment{
             -reason $Reason
             
         }catch{
-            Write-Debug $EligibleRoles
-            Write-Debug $SelectedRoleAssignments
-            Write-Debug $SelectedRoleAssignmentDefinition
+            if($null -eq $EligibleRoles){
+                Write-Debug "Eligible Roles is empty"
+            }else{
+                Write-Debug $EligibleRoles 
+            }
+            if($null -eq $SelectedRoleAssignments){
+                Write-Debug "Selected Role Assignments is empty"
+            }else{
+                Write-Debug $SelectedRoleAssignments.ToString()
+            }
+            if($null -eq $SelectedRoleAssignmentDefinition){
+                Write-Debug "Selected Role Assignment Definition is empty"
+            }else{
+                Write-Debug $SelectedRoleAssignmentDefinition
+            }
              throw "$_." 
         }
     }
