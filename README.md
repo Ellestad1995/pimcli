@@ -26,3 +26,7 @@ Get-PrivilegedRoleAssignments
 Enable-PrivilegedRoleAssignment
 
 ```
+
+## Demo
+
+![Enable-PrivilegedRoleAssignment demo](.\fig\demo01.gif)
