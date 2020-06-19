@@ -40,7 +40,7 @@ function Enable-PrivilegedRoleAssignment{
         $RoleAssignmentMenuItems = $null
         $RoleAssignmentMenuItems = @()
         $RoleAssignmentMenuItems += $EligibleRoles | Select-Object 'DisplayName' | %{$_.'DisplayName'}
-        Write-Debug "$(Out-String -InputObject $RoleAssignmentMenuItems)"
+        Write-Debug "Role assignments: $(Out-String -InputObject $RoleAssignmentMenuItems)"
         $SelectedRoleAssignments = Menu -menuItems $RoleAssignmentMenuItems -Multiselect 
         Write-Verbose "SelectedRoleAssignments: $($SelectedRoleAssignments | %{$_ + " "})"
     }
