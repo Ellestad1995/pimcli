@@ -95,17 +95,17 @@ function Enable-PrivilegedRoleAssignment{
             if($null -eq $EligibleRoles){
                 Write-Debug "Eligible Roles is empty"
             }else{
-                Write-Debug $EligibleRoles 
+                Write-Debug  -Message $(Out-String -InputObject $EligibleRoles) 
             }
             if($null -eq $SelectedRoleAssignments){
                 Write-Debug "Selected Role Assignments is empty"
             }else{
-                Write-Debug $SelectedRoleAssignments.ToString()
+                Write-Debug -Message $SelectedRoleAssignments.ToString()
             }
             if($null -eq $SelectedRoleAssignmentDefinition){
                 Write-Debug "Selected Role Assignment Definition is empty"
             }else{
-                Write-Debug $SelectedRoleAssignmentDefinition
+                Write-Debug -Message $(Out-String -InputObject $SelectedRoleAssignmentDefinition )
             }
              throw "$_." 
         }
