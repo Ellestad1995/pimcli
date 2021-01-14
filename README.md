@@ -24,13 +24,13 @@ See [https://github.com/AzureAD/MSAL.PS](https://github.com/AzureAD/MSAL.PS)
 #Get-Help pimcli
 
 # Connect to the PIM service
-Connect-PIM # Later updates will use existing sessions if availble
+Connect-PIM
+
+# Activate role. Gives a menu to choose roles to activate
+Enable-PrivilegedRoleAssignment
 
 # Allows you to see available roles. Is not needed to activate roles
 Get-PrivilegedRoleAssignments
-
-# Activate role. Gives a manu to choose roles to activate
-Enable-PrivilegedRoleAssignment
 
 ```
 
