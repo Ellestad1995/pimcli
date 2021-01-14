@@ -15,6 +15,10 @@ Class Role {
         $this.DisplayName = ""
         $this.GetPrivilegedRoleDefinition()
         $this.GetPrivilegedRolePrivilegedRoleSetting()
+        Write-Debug "[ResourceId] $($this.ResourceId)"
+        Write-Debug "[DisplayName] $($this.DisplayName)"
+        Write-Debug "[RoleDefinitionId] $($this.RoleDefinitionId)"
+        #Write-Debug "[UserMemberSettings] $($this.UserMemberSettings)"
     }
 
 
@@ -61,5 +65,31 @@ Class Role {
         catch {
             throw
         }
+    }
+
+    [void]OpenPrivilegedRoleAssignmentRequest($ObjectId, $Schedule, $Reason){
+        Write-Verbose "Open Privileged Role Assignment Request for"
+        Write-Debug "$ObjectId"
+        Write-Debug "$Schedule"
+        Write-Debug "$Reason"
+        try{
+            $OpenPrivilegedAssignmentRequest = Open-AzureADMSPrivilegedRoleAssignmentRequest `
+             -ProviderId 'aadRoles' `
+             -ResourceId $this.ResourceId `
+             -RoleDefinitionId $this.RoleDefinitionId `
+             -SubjectId $ObjectId `
+             -Type 'UserAdd' `
+             -AssignmentState 'Active' `
+             -schedule $Schedule `
+             -reason $Reason
+             Write-Debug $OpenPrivilegedAssignmentRequest
+             Write-Output "Aktiverte $($this.DisplayName)"
+         }catch{
+              throw "$_" 
+         }
+         
+    }
+    [string]GetMaximumGrantPeriodInMinutes(){
+        return (($this.UserMemberSettings | Where-Object{$_.'RuleIdentifier' -eq 'ExpirationRule'}).Setting | ConvertFrom-Json).maximumGrantPeriodInMinutes
     }
 }
