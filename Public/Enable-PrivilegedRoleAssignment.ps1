@@ -23,15 +23,26 @@ function Enable-PrivilegedRoleAssignment{
         [parameter(Mandatory=$false, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [string[]]
-        $SelectedRoleAssignments
+        $SelectedRoleAssignments,
+        [parameter(Mandatory=$false, ValueFromPipeline=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $UserObjectId = $Global:CurrentLoggedInUser.ObjectId
     )
     Write-Verbose "Enable-PrivilegedRoleAssignment"
 
     <#
     # Get eligible role assignments
     #>
-    $EligibleRoles = Get-PrivilegedRoleAssignments -Eligible -Detailed
+    try {
+        $null = [Role]
+    }
+    catch {
+        Write-Verbose "Cant't find class Role"
+        return
+    }
 
+    $EligibleRoles = Get-PrivilegedRoleAssignments -Eligible -Detailed
 
     <#
         Create the menu items with eligbile roles if the SelectedRoleAssignments is empty.
@@ -39,20 +50,23 @@ function Enable-PrivilegedRoleAssignment{
     if($null -eq $SelectedRoleAssignments){
         $RoleAssignmentMenuItems = $null
         $RoleAssignmentMenuItems = @()
-        $RoleAssignmentMenuItems += $EligibleRoles | Select-Object 'DisplayName' | %{$_.'DisplayName'}
+        $RoleAssignmentMenuItems += $EligibleRoles | %{"$($_.DisplayName) (Max grant period: $($_.GetMaximumGrantPeriodInMinutes())) minutes"}
+
         Write-Debug "Role assignments: $(Out-String -InputObject $RoleAssignmentMenuItems)"
         $SelectedRoleAssignments = Menu -menuItems $RoleAssignmentMenuItems -Multiselect 
-        Write-Verbose "SelectedRoleAssignments: $($SelectedRoleAssignments | %{$_ + " "})"
+        Write-Debug "SelectedRoleAssignments: $($SelectedRoleAssignments | %{$_ + " "})"
     }
-    
+
+
+
     <#
-    # Ask the user for 
-    # Schedule
-    # reason
+    # Prompt the user for input to schedule and reason for the privileged role request 
+    # Reason: Input a string. The string will be used for all selected role request for the current selected roles
+    # Schedule: Input a number/int in hours. The number will be used to all selected role requests for the current selected roles.
     #>
     Write-Output "Selected Role Assignments: $($SelectedRoleAssignments | %{$_ + ", "})"
-    $Reason = Read-Host -Prompt "Write a reason for activating one or more roles: "
-    $InputDuration = Read-Host -Prompt "Write a duration between 1 and whats allowed in your tenant(e.g. 10)"
+    $Reason = Read-Host -Prompt "Write a reason for activating one or more roles (This will apply to all selected roles)"
+    $InputDuration = Read-Host -Prompt "Write a valid duration in hours for your selected roles (This will apply to all selected roles)"
     try{
         $Duration = [int]$InputDuration
     }catch{
@@ -67,47 +81,19 @@ function Enable-PrivilegedRoleAssignment{
 
     $schedule = New-Object Microsoft.Open.MSGraph.Model.AzureADMSPrivilegedSchedule
     $schedule.Type = "Once"
-    $schedule.Duration = "PT$($Duration)H"
-    $schedule.StartDateTime = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+    $schedule.Duration = "PT$($Duration)H" #https://en.wikipedia.org/wiki/ISO_8601#Durations
+    $schedule.StartDateTime = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ") 
     #$schedule.endDateTime = $schedule.StartDateTime.AddHours($Duration)
 
     foreach($SelectedRoleAssignment in $SelectedRoleAssignments){
         Write-Verbose "Privileged role assignment request for $($SelectedRoleAssignment)"
-        Write-Debug "Avaialbe eligible roles: $(Out-String -InputObject $EligibleRoles )"
-        $SelectedRoleAssignmentDefinition = $EligibleRoles | Where-Object {$_.DisplayName -match $SelectedRoleAssignment}
-        Write-Debug $SelectedRoleAssignmentDefinition
-        Write-Verbose "[Reason] $Reason"
-        Write-verbose "[Duration] $Duration"
-        Write-verbose "[RoleDefinitionId] $($SelectedRoleAssignmentDefinition."RoleDefinitionId")"
+        $SelectedRoleAssignmentDisplayName = ($SelectedRoleAssignment.Split('(').trim())[0]
+        $SelectedEligibleRole = $EligibleRoles | Where-Object {$_.DisplayName -match $SelectedRoleAssignmentDisplayName}
         
-        try{
-            Open-AzureADMSPrivilegedRoleAssignmentRequest `
-            -ProviderId 'aadRoles' `
-            -ResourceId $global:AzureConnDirectoryId `
-            -RoleDefinitionId $SelectedRoleAssignmentDefinition."RoleDefinitionId" `
-            -SubjectId $global:CurrentLoggedInUser.ObjectId `
-            -Type 'UserAdd' `
-            -AssignmentState 'Active' `
-            -schedule $schedule `
-            -reason $Reason
-            
-        }catch{
-            if($null -eq $EligibleRoles){
-                Write-Debug "Eligible Roles is empty"
-            }else{
-                Write-Debug  -Message $(Out-String -InputObject $EligibleRoles) 
-            }
-            if($null -eq $SelectedRoleAssignments){
-                Write-Debug "Selected Role Assignments is empty"
-            }else{
-                Write-Debug -Message $SelectedRoleAssignments.ToString()
-            }
-            if($null -eq $SelectedRoleAssignmentDefinition){
-                Write-Debug "Selected Role Assignment Definition is empty"
-            }else{
-                Write-Debug -Message $(Out-String -InputObject $SelectedRoleAssignmentDefinition )
-            }
-             throw "$_." 
-        }
+        Write-Debug "Selected eligible role $($SelectedEligibleRole.DisplayName)"        
+        Write-Debug "[Reason] $Reason"
+        Write-Debug "[Duration] $Duration"
+        
+        $SelectedEligibleRole.OpenPrivilegedRoleAssignmentRequest($UserObjectId, $schedule, $Reason)
     }
 }
