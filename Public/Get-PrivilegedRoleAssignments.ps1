@@ -105,10 +105,10 @@ function Get-PrivilegedRoleAssignments{
                                     -Filter "subjectId eq '$($global:CurrentLoggedInUser.ObjectId)'"
     }
     
-    
-    [System.Collections.ArrayList]$Roles = $null
+    [System.Collections.ArrayList]$Roles = @()
     foreach($AzureADRoleAssignment in $AzureADRoleAssignments){
         $Roles += [Role]::New($AzureADRoleAssignment."ResourceId", $AzureADRoleAssignment."RoleDefinitionId")
     }
+    Write-Debug "Roles count: $($Roles.Count)"
     return $Roles
 }
