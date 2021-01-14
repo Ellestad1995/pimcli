@@ -11,19 +11,20 @@ An example
 .NOTES
 General notes
 #>
+
 function Connect-PIM{
     [cmdletBinding()]
     param(
-        # Force MFA prompt if it's not prompted by default when logging in to your tenant. 
+        # Force MFA prompt if it's not prompted by default when logging in to your tenant.
         [Parameter(Mandatory=$false)]
         [bool]
         $ForceMFA,
+
         [Parameter(Mandatory=$false)]
         [switch]
         $WaitIf
     )
-    Write-Verbose "Connect-PIM"
-    
+    Write-Verbose "Connect-PIM"    
     #Force a re-authentication to AzureAD using information from the existing connection. But now force MFA prompt
     if($ForceMFA){
         Write-Verbose "Connect AzureAD with enforced MFA prompt"
@@ -45,8 +46,8 @@ function Connect-PIM{
         -MsAccessToken $MsResponse.AccessToken `
         -AccountId $global:AzureAdConnection.UserPrincipalName `
         -tenantId $global:AzureAdConnection."TenantId"
-
     }
+
     # If no connection has been made to AzureAD. Also if forced MFA failed.
     if(($null -eq $global:AzureAdConnection)){        
         # Connect prompting for credentials
