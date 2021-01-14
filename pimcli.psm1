@@ -46,10 +46,15 @@ if($PSVersionTable.PSVersion.Major -lt 7) {
 Check if msal.ps is installed
 If msal.ps is installed the user can be triggered for mfa token if needed.
 #>
-if(-not (Get-Package 'msal.ps')){
+try {
+    
+}
+catch {
+    
+}
+if(-not (Get-Package 'msal.ps' -ErrorAction SilentlyContinue)){
     Write-Information "Note that a Powershell module msal.ps is not installed on your system. It is not necessarily needed for pimcli to work." -InformationAction Continue
     Write-Information "Install msal.ps if you need to be prompted for mfa authentication when enabling privileged roles. E.g. have a valid authentication token with mfa." -InformationAction Continue
-    Write-Information "More information: " -InformationAction Continue
 }else{
     Import-Module MSAL.PS
 }
