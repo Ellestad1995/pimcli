@@ -50,7 +50,7 @@ function Enable-PrivilegedRoleAssignment{
     if($null -eq $SelectedRoleAssignments){
         $RoleAssignmentMenuItems = $null
         $RoleAssignmentMenuItems = @()
-        $RoleAssignmentMenuItems += $EligibleRoles | %{"$($_.DisplayName) (Max grant period: $($_.GetMaximumGrantPeriodInMinutes())) minutes"}
+        $RoleAssignmentMenuItems += $EligibleRoles | %{"$($_.DisplayName) (Max grant period: $($_.GetMaximumGrantPeriodInMinutes()) minutes)"}
 
         Write-Debug "Role assignments: $(Out-String -InputObject $RoleAssignmentMenuItems)"
         $SelectedRoleAssignments = Menu -menuItems $RoleAssignmentMenuItems -Multiselect 
@@ -58,7 +58,11 @@ function Enable-PrivilegedRoleAssignment{
     }
 
 
-
+    if($null -eq $SelectedRoleAssignment){
+        Write-Output "No roles selected"
+        return
+    }
+    
     <#
     # Prompt the user for input to schedule and reason for the privileged role request 
     # Reason: Input a string. The string will be used for all selected role request for the current selected roles
