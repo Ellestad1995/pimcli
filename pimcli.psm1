@@ -8,8 +8,8 @@ pimcli is a Powershell commandline tool for activating pim-roles in Azure.
 #>
 
 # For debuging purposes
-$DebugPreference = "continue"
-$VerbosePreference = "Continue"
+#$DebugPreference = "continue"
+#$VerbosePreference = "Continue"
 
 if($PSScriptRoot){
     Write-Debug $PSScriptRoot
