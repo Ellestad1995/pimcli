@@ -58,11 +58,11 @@ function Enable-PrivilegedRoleAssignment{
     }
 
 
-    if($null -eq $SelectedRoleAssignment){
+    if($null -eq $SelectedRoleAssignments){
         Write-Output "No roles selected"
         return
     }
-    
+
     <#
     # Prompt the user for input to schedule and reason for the privileged role request 
     # Reason: Input a string. The string will be used for all selected role request for the current selected roles
