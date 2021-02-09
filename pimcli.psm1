@@ -15,6 +15,8 @@ if($PSScriptRoot){
     Write-Debug $PSScriptRoot
 }
 
+
+
 <#
 Import the module PS-Menu in order to display privileged roles in a nice checkbox-style list.
 #>
@@ -66,20 +68,10 @@ try{
     . "$PSScriptRoot\Public\Get-PrivilegedRoleAssignments.ps1"
     . "$PSScriptRoot\Public\Enable-PrivilegedRoleAssignment.ps1"
     . "$PSScriptRoot\Public\Role.ps1"
+    . "$PSScriptRoot\Private\logdate.ps1"
 }catch{
     throw "Could not import one or more functions. $_"
 }
-
-<#
-     Privileged Identity Management
-     Connect to service
-     Save Connection details
-     Save Account details for authenticated user
-#>
-$global:AzureAdConnection = $null
-$global:AzureConnDirectoryId = $null # Directory id / Tenant id
-$global:CurrentLoggedInUser = $null # The authenticated user
-
 ## Add the DisplayName to the assignments
 #$global:RoleAssignmentMenuItems = @() #@("Global Cloud King", "Powershell jedi", "Knight of the Holy shell", "Lord of the Sith")
 #$global:RoleAssignmentMenuItems += "$($RoleDefinition."DisplayName")"
