@@ -17,12 +17,8 @@ An example
 General notes
 #>#
 function Get-PrivilegedRoleAssignments{
-    [cmdletBinding(DefaultParameterSetName='Default')]
+    [cmdletBinding(DefaultParameterSetName='EligibleRoles')]
     param(
-        # By default Get-privilegedRoleAssignments displays the human friendly version. The default switch outputs all data about the role assignment
-        [Parameter(Mandatory=$false)]
-        [switch]
-        $Detailed,
         # Get the details for the specified role
         [Parameter(Mandatory=$false, ParameterSetName='DisplayName')]
         [ValidateNotNullOrEmpty()]
@@ -35,10 +31,27 @@ function Get-PrivilegedRoleAssignments{
         # The Eligible switch displays the roles which has the AssignmentState equal to Eligible and is not already Active. Cannot be used with DisplayName parameter
         [Parameter(Mandatory=$false, ParameterSetName='EligibleRoles')]
         [switch]
-        $Eligible
+        $Eligible,
+        [Parameter(Mandatory=$false, ParameterSetName='EligibleRoles')]
+        [Parameter(Mandatory=$false, ParameterSetName='ActiveRoles')]
+        [Parameter(Mandatory=$false, ParameterSetName='DisplayName')]
+        [switch]
+        $PassThru
     )
-    
-    if($null -eq $global:AzureConnDirectoryId){
+
+    <#
+        Get the authenticated user
+    #>
+    $AuthenticationResult = $null
+    try {
+        $AuthenticationResult =  Connect-PIM -Silent -PassThru
+    }
+    catch {
+        #Handle exception
+        Write-Output "$_"
+    }
+
+    if($null -eq $AuthenticationResult){
         throw("There are no connection to Azure. Please authenticate first.")
         return
     }
@@ -78,16 +91,16 @@ function Get-PrivilegedRoleAssignments{
         #>
         $AzureADRoleAssignments = Get-AzureADMSPrivilegedRoleAssignment `
                                     -ProviderId "aadRoles" `
-                                    -ResourceId $global:AzureConnDirectoryId `
-                                    -Filter "subjectId eq '$($global:CurrentLoggedInUser.ObjectId)' And DisplayName eq $($DisplayName)"
+                                    -ResourceId $AuthenticationResult.TenantID `
+                                    -Filter "subjectId eq '$($AuthenticationResult.UserObjectId)' And DisplayName eq $($DisplayName)"
     }elseif($Active){
         <#
             Roles that are already active
         #>
         $AzureADRoleAssignments = Get-AzureADMSPrivilegedRoleAssignment `
         -ProviderId "aadRoles" `
-        -ResourceId $global:AzureConnDirectoryId `
-        -Filter "subjectId eq '$($global:CurrentLoggedInUser.ObjectId)' And AssignmentState eq 'Active'"
+        -ResourceId $AuthenticationResult.TenantID `
+        -Filter "subjectId eq '$($AuthenticationResult.UserObjectId)' And AssignmentState eq 'Active'"
     }
     elseif($Eligible){
         <#
@@ -95,20 +108,49 @@ function Get-PrivilegedRoleAssignments{
         #>
         $AzureADRoleAssignments = Get-AzureADMSPrivilegedRoleAssignment `
         -ProviderId "aadRoles" `
-        -ResourceId $global:AzureConnDirectoryId `
-        -Filter "subjectId eq '$($global:CurrentLoggedInUser.ObjectId)' And AssignmentState eq 'Eligible'"
+        -ResourceId $AuthenticationResult.TenantID `
+        -Filter "subjectId eq '$($AuthenticationResult.UserObjectId)' And AssignmentState eq 'Eligible'"
     }
     else{
         $AzureADRoleAssignments = Get-AzureADMSPrivilegedRoleAssignment `
                                     -ProviderId "aadRoles" `
-                                    -ResourceId $global:AzureConnDirectoryId `
-                                    -Filter "subjectId eq '$($global:CurrentLoggedInUser.ObjectId)'"
+                                    -ResourceId $AuthenticationResult.TenantID `
+                                    -Filter "subjectId eq '$($AuthenticationResult.UserObjectId)'"
     }
     
-    [System.Collections.ArrayList]$Roles = @()
-    foreach($AzureADRoleAssignment in $AzureADRoleAssignments){
-        $Roles += [Role]::New($AzureADRoleAssignment."ResourceId", $AzureADRoleAssignment."RoleDefinitionId")
+
+    <#
+    AzureResources
+    #>
+    try{
+        $AzureResourcesPrivilegedRoleAssignmentRequests = Get-AzureADMSPrivilegedRoleAssignmentRequest -ProviderId 'AzureResources' `
+        -Filter "subjectId eq '$($AuthenticationResult.UserObjectId)' And AssignmentState eq 'Eligible'"
+        Write-Verbose "$(logdate) AzureResourcesPrivilegedRoleAssignmentRequests: $($AzureResourcesPrivilegedRoleAssignmentRequests.Count)"
+    }catch{
+        throw $_
     }
-    Write-Debug "Roles count: $($Roles.Count)"
-    return $Roles
+
+    if($null -eq $AzureResourcesPrivilegedRoleAssignmentRequests){
+        # There are no role assignments for azure resources for the user
+        Write-Verbose "$(logdate) No available role assignments for the signed in user"
+    }
+
+
+
+
+    
+    [System.Collections.ArrayList]$Roles = @()
+    foreach($AzureResourcesPrivilegedRoleAssignmentRequest in $AzureResourcesPrivilegedRoleAssignmentRequests){
+        $Roles += [Role]::New($AzureResourcesPrivilegedRoleAssignmentRequest."ResourceId", $AzureResourcesPrivilegedRoleAssignmentRequest."RoleDefinitionId", 'AzureResources')
+    }
+
+    foreach($AzureADRoleAssignment in $AzureADRoleAssignments){
+        $Roles += [Role]::New($AzureADRoleAssignment."ResourceId", $AzureADRoleAssignment."RoleDefinitionId", 'Aadroles')
+    }
+
+    Write-Verbose "Total roles count: $($Roles.Count)"
+    
+    if($PSBoundParameters.ContainsKey("PassThru") -and $PassThru){
+        return $Roles
+    }
 }

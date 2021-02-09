@@ -3,21 +3,27 @@ Class Role {
     [String]$DisplayName
     [String]$RoleDefinitionId
     [System.Object]$UserMemberSettings
+    [String]$ProviderId
+
+    
     
     Role(){}
 
     Role(
         [String]$ResourceId,
-        [String]$RoleDefinitionId
+        [String]$RoleDefinitionId,
+        [String]$ProviderId
     ){
         $this.ResourceId = $ResourceId
         $this.RoleDefinitionId = $RoleDefinitionId
+        $this.ProviderId = $ProviderId
         $this.DisplayName = ""
         $this.GetPrivilegedRoleDefinition()
         $this.GetPrivilegedRolePrivilegedRoleSetting()
-        Write-Debug "[ResourceId] $($this.ResourceId)"
-        Write-Debug "[DisplayName] $($this.DisplayName)"
-        Write-Debug "[RoleDefinitionId] $($this.RoleDefinitionId)"
+        Write-Verbose "[ResourceId] $($this.ResourceId)"
+        Write-Verbose "[ProviderId] $($this.ProviderId)"
+        Write-Verbose "[DisplayName] $($this.DisplayName)"
+        Write-Verbose "[RoleDefinitionId] $($this.RoleDefinitionId)"
         #Write-Debug "[UserMemberSettings] $($this.UserMemberSettings)"
     }
 
@@ -34,7 +40,7 @@ Class Role {
     #>
     [void] GetPrivilegedRoleDefinition(){
         try {
-            $RoleDefinition = Get-AzureADMSPrivilegedRoleDefinition -ProviderId aadRoles `
+            $RoleDefinition = Get-AzureADMSPrivilegedRoleDefinition -ProviderId $this.ProviderId `
             -ResourceId $this.ResourceId `
             -Filter "Id eq '$($this.RoleDefinitionId)'"
     
@@ -58,7 +64,7 @@ Class Role {
     #>
     [void] GetPrivilegedRolePrivilegedRoleSetting(){
         try {
-            $RoleSetting = Get-AzureADMSPrivilegedRoleSetting -ProviderId aadRoles `
+            $RoleSetting = Get-AzureADMSPrivilegedRoleSetting -ProviderId $this.ProviderId `
             -Filter "ResourceId eq '$($this.ResourceId)' and RoleDefinitionId eq '$($this.RoleDefinitionId)'"
             $this.UserMemberSettings = $RoleSetting.UserMemberSettings
         }
@@ -74,7 +80,7 @@ Class Role {
         Write-Debug "$Reason"
         try{
             $OpenPrivilegedAssignmentRequest = Open-AzureADMSPrivilegedRoleAssignmentRequest `
-             -ProviderId 'aadRoles' `
+             -ProviderId $this.ProviderId `
              -ResourceId $this.ResourceId `
              -RoleDefinitionId $this.RoleDefinitionId `
              -SubjectId $ObjectId `
@@ -93,3 +99,35 @@ Class Role {
         return (($this.UserMemberSettings | Where-Object{$_.'RuleIdentifier' -eq 'ExpirationRule'}).Setting | ConvertFrom-Json).maximumGrantPeriodInMinutes
     }
 }
+
+<#
+Get-AzureADMSPrivilegedResource -ProviderId AzureResources | 
+Select-Object -Property type, DisplayName, Id | 
+%{Get-AzureADMSPrivilegedRoleAssignment -ProviderId AzureResources -ResourceId $_.Id -Filter "(AssignmentState eq 'Eligible') And (MemberType ne 'Inherited') And (SubjectId eq '70327b75-6e39-45b4-87d7-371c8679c02a')"} | 
+%{Get-AzureADMSPrivilegedRoleDefinition -ProviderId AzureResources -ResourceId $_.ResourceId -Id $_.RoleDefinitionId} | 
+%{Get-AzureADMSPrivilegedRoleSetting -ProviderId AzureResources -Id $_.Id}
+
+#>
+
+
+<#
+Get-AzureADMSPrivilegedRoleAssignmentRequest -ProviderId AzureResources | 
+%{Get-AzureADMSPrivilegedRoleDefinition -ProviderId AzureResources -ResourceId $_.ResourceId -Id $_.RoleDefinitionId }
+
+
+Id                      : acdd72a7-3385-48ef-bd42-f606fba81ae7
+ResourceId              : 11c886e0-fd79-4162-83d9-0f2dd63e018b
+ExternalId              : /subscriptions/fbe5505b-e7b7-4cdd-aa50-efccaf5df9a3/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7
+DisplayName             : Reader
+SubjectCount            :
+EligibleAssignmentCount :
+ActiveAssignmentCount   :
+
+Id                      : b24988ac-6180-42a0-ab88-20f7382dd24c
+ResourceId              : 3e38ceeb-8ab8-4ebe-8032-711e6c7806be
+ExternalId              : /subscriptions/fbe5505b-e7b7-4cdd-aa50-efccaf5df9a3/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c
+DisplayName             : Contributor
+SubjectCount            :
+EligibleAssignmentCount :
+ActiveAssignmentCount   :
+#>
