@@ -3,8 +3,15 @@ Class Role {
     [String]$ResourceIdDisplayName
     [String]$DisplayName
     [String]$RoleDefinitionId
-    [System.Object]$UserMemberSettings
+    [Microsoft.Open.MSGraph.Model.AzureADMSPrivilegedRuleSetting[]]$UserMemberSettings
     [String]$ProviderId
+
+    #Required for if  TicketingRule {"ticketingRequired":true}
+    # These variables are shared across each instance of the class
+    # since each Role in most cases will use the ticketing system and number
+    # user will anyway need to approve use of the system and ticket before each request attempt
+    static [string] $TicketingSystem = ""
+    static [string] $TicketingNumber
 
     
     
@@ -77,11 +84,35 @@ Class Role {
         }
     }
 
-    [void]OpenPrivilegedRoleAssignmentRequest($ObjectId, $Schedule, $Reason){
+    [void]OpenPrivilegedRoleAssignmentRequest($ObjectId, $Schedule, $Reason, $TicketingSystem, $TicketingNumber){
         Write-Verbose "$(logdate) Open Privileged Role Assignment Request for $($this.DisplayName)"
         Write-Debug "$ObjectId"
         Write-Debug "$Schedule"
         Write-Debug "$Reason"
+
+        
+
+        # Check if ticketing is required
+        $TicketingRule = (($this.UserMemberSettings | Where-Object {$_.RuleIdentifier -eq 'TicketingRule'} | Select-Object -First 1).Setting | ConvertFrom-Json).'ticketingRequired'
+        if($true -eq $TicketingRule){
+            Write-Verbose "$(logdate) Ticketing is required for role $($this.DisplayName)"
+            #$this.PromptForTicketingInformation()
+            #Prompt for ticketing information
+            Write-Host "Ticketing information is required for $($this.DisplayName)"
+            Write-Host "It is currently not supported by AzureADPreview."
+            Write-Host "Role activation canceled for $($this.DisplayName)"
+            return
+        }
+
+        # Check if MFA is required
+        $MfaRule = (($this.UserMemberSettings | Where-Object {$_.RuleIdentifier -eq 'MfaRule'} | Select-Object -First 1).Setting | ConvertFrom-Json).'mfaRequired'
+        if($true -eq $MfaRule){
+            Write-Verbose "$(logdate) Mfa is required for role $($this.DisplayName)"
+            Write-Host "Mfa is required to activate this role."
+            Write-Host "Waiting for Mfa..."
+            Connect-PIM -Interactive -RequireMFA
+        }
+
         try{
             $OpenPrivilegedAssignmentRequest = Open-AzureADMSPrivilegedRoleAssignmentRequest `
              -ProviderId $this.ProviderId `
@@ -93,7 +124,7 @@ Class Role {
              -schedule $Schedule `
              -reason $Reason
              Write-Debug $OpenPrivilegedAssignmentRequest
-             Write-Output "Aktiverte $($this.DisplayName)"
+             Write-Host "Aktiverte $($this.DisplayName)"
          }catch{
               throw "$_" 
          }
@@ -125,6 +156,11 @@ Class Role {
 
     [string]GetMaximumGrantPeriodInMinutes(){
         return (($this.UserMemberSettings | Where-Object{$_.'RuleIdentifier' -eq 'ExpirationRule'}).Setting | ConvertFrom-Json).maximumGrantPeriodInMinutes
+    }
+
+    [void]PromptForTicketingInformation(){
+        $this.TicketingSystem = Read-Host -Prompt "Ticket system"
+        $this.TicketingNumber = Read-Host -Prompt "Ticket number *" 
     }
 }
 

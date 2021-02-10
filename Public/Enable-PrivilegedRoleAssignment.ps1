@@ -23,13 +23,22 @@ function Enable-PrivilegedRoleAssignment{
         [parameter(Mandatory=$false, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [string[]]
-        $SelectedRoleAssignments,
-        [parameter(Mandatory=$false, ValueFromPipeline=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $UserObjectId = $Global:CurrentLoggedInUser.ObjectId
+        $SelectedRoleAssignments
     )
-    Write-Verbose "Enable-PrivilegedRoleAssignment"
+    Write-Verbose "$(logdate)Enable-PrivilegedRoleAssignment"
+
+
+    <#
+        Get the authenticated user
+    #>
+    $AuthenticationResult = $null
+    try {
+        $AuthenticationResult =  Connect-PIM -Silent -PassThru
+    }
+    catch {
+        #Handle exception
+        Write-Output "$_"
+    }
 
     <#
     # Get eligible role assignments
@@ -39,10 +48,10 @@ function Enable-PrivilegedRoleAssignment{
     }
     catch {
         Write-Verbose "Cant't find class Role"
-        return
+        throw "Could't find class Role"
     }
 
-    $EligibleRoles = Get-PrivilegedRoleAssignments -Eligible -Detailed
+    $EligibleRoles = Get-PrivilegedRoleAssignments -Eligible -PassThru
 
     <#
         Create the menu items with eligbile roles if the SelectedRoleAssignments is empty.
@@ -72,7 +81,7 @@ function Enable-PrivilegedRoleAssignment{
     $Reason = Read-Host -Prompt "Write a reason for activating one or more roles (This will apply to all selected roles)"
     $InputDuration = Read-Host -Prompt "Write a valid duration in hours for your selected roles (This will apply to all selected roles)"
     try{
-        $Duration = [int]$InputDuration
+        $Duration = [int]$InputDuration 
     }catch{
         Throw("Duration specified is not a valid number.")
     }
@@ -98,6 +107,7 @@ function Enable-PrivilegedRoleAssignment{
         Write-Debug "[Reason] $Reason"
         Write-Debug "[Duration] $Duration"
         
-        $SelectedEligibleRole.OpenPrivilegedRoleAssignmentRequest($UserObjectId, $schedule, $Reason)
+        $SelectedEligibleRole.OpenPrivilegedRoleAssignmentRequest($AuthenticationResult.'UserObjectId', $schedule, $Reason,"","")
     }
 }
+Enable-PrivilegedRoleAssignment
