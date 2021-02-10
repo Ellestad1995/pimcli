@@ -18,6 +18,5 @@ Describe 'Get-PrivilegedRoleAssignments' {
             Get-PrivilegedRoleAssignments -Eligible -PassThru | ConvertTo-Json | should -Be ($MockRoleAssignmentRequest | ConvertTo-Json)
         }
 
-      
     }
 }

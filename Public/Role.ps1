@@ -1,5 +1,6 @@
 Class Role {
     [String]$ResourceId
+    [String]$ResourceIdDisplayName
     [String]$DisplayName
     [String]$RoleDefinitionId
     [System.Object]$UserMemberSettings
@@ -20,10 +21,13 @@ Class Role {
         $this.DisplayName = ""
         $this.GetPrivilegedRoleDefinition()
         $this.GetPrivilegedRolePrivilegedRoleSetting()
-        Write-Verbose "[ResourceId] $($this.ResourceId)"
-        Write-Verbose "[ProviderId] $($this.ProviderId)"
-        Write-Verbose "[DisplayName] $($this.DisplayName)"
-        Write-Verbose "[RoleDefinitionId] $($this.RoleDefinitionId)"
+        if($this.ProviderId -eq 'AzureResources'){
+            $this.GetPrivilegedResource()
+        }
+        Write-Verbose "$(logdate) [ResourceId] $($this.ResourceId)"
+        Write-Verbose "$(logdate)[ProviderId] $($this.ProviderId)"
+        Write-Verbose "$(logdate)[DisplayName] $($this.DisplayName)"
+        Write-Verbose "$(logdate)[RoleDefinitionId] $($this.RoleDefinitionId)"
         #Write-Debug "[UserMemberSettings] $($this.UserMemberSettings)"
     }
 
@@ -74,7 +78,7 @@ Class Role {
     }
 
     [void]OpenPrivilegedRoleAssignmentRequest($ObjectId, $Schedule, $Reason){
-        Write-Verbose "Open Privileged Role Assignment Request for"
+        Write-Verbose "$(logdate) Open Privileged Role Assignment Request for $($this.DisplayName)"
         Write-Debug "$ObjectId"
         Write-Debug "$Schedule"
         Write-Debug "$Reason"
@@ -93,8 +97,32 @@ Class Role {
          }catch{
               throw "$_" 
          }
-         
     }
+
+
+    <#
+
+    Id                  : 11c886e0-fd79-4162-83d9-0f2dd63e018b
+    ExternalId          : /subscriptions/fbe5505b-e7b7-4cdd-aa50-efccaf5df9a3
+    Type                : subscription
+    DisplayName         : Visual Studio Enterprise Subscription – MPN
+    Status              : Active
+    RegisteredDateTime  : 09.02.2021 16:40:22
+    RegisteredRoot      :
+    RoleAssignmentCount :
+    RoleDefinitionCount :
+    Permissions         :
+    #>
+    [void] GetPrivilegedResource(){
+        Write-Verbose "$(logdate)Get Privileged Resource"
+        Write-Verbose "$(logdate)ResourceId: $($this.ResourceId)"
+        $Resource = Get-AzureADMSPrivilegedResource -Provider $this.ProviderId -Id $this.ResourceId
+        Write-Verbose "$(logdate)$($Resource.'DisplayName')"
+        $this.ResourceIdDisplayName = $Resource.'DisplayName'
+        $this.DisplayName = $this.DisplayName + " on " +  $Resource.'DisplayName'
+    }
+
+
     [string]GetMaximumGrantPeriodInMinutes(){
         return (($this.UserMemberSettings | Where-Object{$_.'RuleIdentifier' -eq 'ExpirationRule'}).Setting | ConvertFrom-Json).maximumGrantPeriodInMinutes
     }
