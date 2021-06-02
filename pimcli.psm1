@@ -35,7 +35,7 @@ if($PSVersionTable.PSVersion.Major -lt 7) {
 }else{
 
     if($IsLinux -or $IsMacOS){
-        Write-Warning "Module is not tested on your platform. Please report any issues."
+        Write-Host -ForegroundColor Yellow "Module is not tested on your platform. Please report any issues."
     }
     try{
         Import-Module AzureAdPreview -UseWindowsPowershell -Function Connect-AzureAD, Get-AzureAdUser, Get-AzureADMSPrivilegedRoleDefinition, Get-AzureADMSPrivilegedRoleAssignment, Open-AzureADMSPrivilegedRoleAssignmentRequest
