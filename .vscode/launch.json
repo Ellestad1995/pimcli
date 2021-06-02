@@ -10,15 +10,14 @@
             "request": "launch",
             "script": "${file}",
             "cwd": "${file}",
-            "args": ["-Verbose"]
+            "args": [ "${command:SpecifyScriptArgs}" ]
         },
         {
             "name": "PowerShell: Launch Current File with Args Prompt",
             "type": "PowerShell",
             "request": "launch",
             "script": "${file}",
-            "cwd": "${file}",
-            "args": ["{command:SpecifyScriptArgs}"]
+            "cwd": "${file}"
         },
         {
             "name": "Powershell Interactive Session",

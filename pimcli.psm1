@@ -64,11 +64,12 @@ if(-not (Get-Package 'msal.ps' -ErrorAction SilentlyContinue)){
 
 # Import functions
 try{
+    . "$PSScriptRoot\Private\logdate.ps1"
+    . "$PSScriptRoot\Public\Role.ps1"
     . "$PSScriptRoot\Public\Connect-pim.ps1"
     . "$PSScriptRoot\Public\Get-PrivilegedRoleAssignments.ps1"
     . "$PSScriptRoot\Public\Enable-PrivilegedRoleAssignment.ps1"
-    . "$PSScriptRoot\Public\Role.ps1"
-    . "$PSScriptRoot\Private\logdate.ps1"
+   
 }catch{
     throw "Could not import one or more functions. $_"
 }

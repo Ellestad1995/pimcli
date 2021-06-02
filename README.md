@@ -37,3 +37,9 @@ Get-PrivilegedRoleAssignments
 ## Demo
 
 ![Enable-PrivilegedRoleAssignment demo](./fig/demo01.gif)
+
+
+## Running tests
+```Powershell
+Invoke-Pester -Output Detailed .\Public\Connect-pim.Tests.ps1
+```
