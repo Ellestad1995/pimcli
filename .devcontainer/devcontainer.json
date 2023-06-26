@@ -1,0 +1,53 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.163.1/containers/alpine
+{
+	"name": "pimcli",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	// Set *default* container specific settings.json values on container create.
+	//"settings": {
+	//},
+
+	// Add the IDs of extensions you want installed when the container is created.
+	// Note that some extensions may not work in Alpine Linux. See https://aka.ms/vscode-remote/linux.
+	"customizations": {
+		"vscode": {
+			"settings": { 
+				"terminal.integrated.defaultProfile.linux": "pwsh"
+			},
+			"extensions": [	
+				"ms-vscode.powershell","ms-vscode.azure-account","azure-automation.vscode-azureautomation","ms-dotnettools.dotnet-interactive-vscode","takumii.markdowntable","mutantdino.resourcemonitor","mhutchie.git-graph","ms-vscode.vscode-node-azure-pack","esbenp.prettier-vscode","janisdd.vscode-edit-csv","ms-vscode.azure-account","ms-azure-devops.azure-pipelines","ms-azuretools.vscode-bicep"
+			]
+		}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+ 	// Uncomment the next line to run commands after the container is created. This gets run in bash which is why we call `pwsh`.
+ 
+	// Use 'postCreateCommand' to run commands after the container is created.
+    //"postCreateCommand": "uname -a",
+	"postCreateCommand": "pwsh",
+	//"postCreateCommand": "pwsh Import-Module -Name Microsoft.Online.SharePoint.PowerShell",
+
+	// consistency=consistent or consistency=cached
+	//"mounts": ["source=psdemo-data,target=/psdemo-data,type=volume"],
+
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode",
+
+	"features": {
+		//"ghcr.io/devcontainers/features/terraform:1": {
+		//	"version": "latest"
+		//},
+	//	"ghcr.io/devcontainers/features/azure-cli:1": {
+	//		"version": "latest"
+	//	}
+		//"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+		//	"version": "latest"
+		//}
+	}
+
+}

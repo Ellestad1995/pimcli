@@ -7,3 +7,4 @@ riderModule.iml
 nupkg
 .idea
 .DS_Store
+output/*
